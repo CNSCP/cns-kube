@@ -1,0 +1,21 @@
+{
+  "name": "cns-kube",
+  "version": "1.0.0",
+  "description": "Dapr CNS Kube",
+  "author": "Padi, Inc",
+  "license": "ISC",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index",
+    "stop": "killall node",
+    "start:dapr": "dapr run --app-id cns-kube --app-port 3001 --app-protocol http --resources-path ../cns-dapr/components -- npm run start",
+    "stop:dapr": "dapr stop --app-id cns-dapr",
+    "start:all": "dapr run -f dapr.yaml",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@dapr/dapr": "^3.1.2",
+    "@kubernetes/client-node": "^0.18.1",
+    "object-merge": "^2.5.1"
+  }
+}
