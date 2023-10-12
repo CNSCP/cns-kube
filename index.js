@@ -92,7 +92,7 @@ async function updateConnection(id) {
   console.log('Processing:', id, profile, role, action);
 
   if (installer === undefined) {
-    console.error('Error:', 'installer not valid', name);
+    console.error('Error:', 'installer not valid');
     return;
   }
 
