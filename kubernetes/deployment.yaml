@@ -24,6 +24,6 @@ spec:
       serviceAccountName: kubecns
       containers:
         - name: cns-kube
-          image: gcr.io/padi-staging/github.com/cnscp/cns-kube:726079663b69e66f9620e755c1f332bc4e0b86b5
+          image: gcr.io/padi-staging/github.com/cnscp/cns-kube:44d37cc2545ee4be45cc927ef93627715ac9e814
           ports:
           - containerPort: 3001
