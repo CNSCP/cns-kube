@@ -14,9 +14,11 @@ const HELM_BINARY = process.env.HELM_BINARY_PATH || 'suppress';
 // Apply action
 function apply(properties) {
   const namespace = properties.namespace || '';
-  const chartName = properties.chartName || '';
+  let chartName = properties.chartName || '';
   const releaseName = properties.releaseName || '';
   const repoUrl = properties.repoUrl || '';
+
+  chartName = chartName.toLowerCase()
 
   if (namespace === '') throw new Error('namespace is required');
   if (chartName === '') throw new Error('chartName is required');
