@@ -42,12 +42,25 @@ function apply(properties) {
 
 // Remove action
 function remove(properties) {
-  throw new Error('not yet implemented');
-/*
   // Success
   return {
     action: 'removed',
-    status: <status here>
+    status: 'not yet implemented'
+  };
+/*
+  const namespace = properties.namespace || '';
+  const releaseName = properties.releaseName || '';
+
+  if (namespace === '') throw new Error('namespace is required');
+  if (releaseName === '') throw new Error('releaseName is required');
+
+  const output = spawn(`${HELM_BINARY} uninstall ${releaseName} --namespace ${namespace} --output json`);
+  const data = JSON.parse(output.toString());
+
+  // Success
+  return {
+    action: 'removed',
+    status: data.info.status
   };
 */
 }

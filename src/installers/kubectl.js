@@ -9,6 +9,13 @@ const k8sClientNode = require('@kubernetes/client-node');
 
 // Apply action
 function apply(properties) {
+  // Success
+  return {
+    action: 'applied',
+    status: 'not yet implemented'
+  };
+
+/*/
   const namespace = properties.namespace || '';
   const manifest = properties.manifest || '';
 
@@ -20,8 +27,8 @@ function apply(properties) {
   const kubeConfig = new k8sClientNode.KubeConfig().loadFromDefault();
   const k8s = kubeConfig.makeApiClient(k8sClientNode.CoreV1Api);
 
-  throw new Error('not yet implemented');
-/*
+  // ....
+
   // Success
   return {
     action: 'applied',
@@ -32,14 +39,11 @@ function apply(properties) {
 
 // Remove action
 function remove(properties) {
-  throw new Error('not yet implemented');
-/*
   // Success
   return {
     action: 'removed',
-    status: <status here>
+    status: 'not yet implemented'
   };
-*/
 }
 
 // Exports
