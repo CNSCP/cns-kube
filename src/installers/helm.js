@@ -45,7 +45,8 @@ function apply(properties) {
 // Remove action
 function remove(properties) {
   const namespace = properties.namespace || '';
-  const releaseName = properties.releaseName || '';
+  let releaseName = properties.releaseName || '';
+  releaseName = releaseName.toLowerCase()
   const output = spawn(`${HELM_BINARY} uninstall ${releaseName} --namespace ${namespace}`);
   return {
     action: 'removed',
