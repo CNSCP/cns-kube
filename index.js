@@ -16,7 +16,7 @@ const SERVER_PORT = process.env.CNS_SERVER_PORT || '3001';
 const DAPR_HOST = process.env.CNS_DAPR_HOST || 'localhost';
 const DAPR_PORT = process.env.CNS_DAPR_PORT || '3500';
 
-const CNS_APP_ID = process.env.CNS_APP_ID || 'cns-dapr';
+const CNS_DAPR = process.env.CNS_DAPR || 'cns-dapr';
 const CNS_PUBSUB = process.env.CNS_PUBSUB || 'cns-pubsub';
 
 const KUBE_PROFILE = 'kubecns.control';
@@ -145,7 +145,7 @@ async function updateConnection(id) {
   if (result !== undefined) {
     // Post action result
     const res = await client.invoker.invoke(
-      CNS_APP_ID,
+      CNS_DAPR,
       'node/connections/' + id + '/properties',
       dapr.HttpMethod.POST,
       result);
@@ -259,7 +259,7 @@ async function start() {
 
   // Fetch node state
   const res = await client.invoker.invoke(
-    CNS_APP_ID,
+    CNS_DAPR,
     'node',
     dapr.HttpMethod.GET);
 
