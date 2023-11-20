@@ -41,6 +41,9 @@ const server = new dapr.DaprServer({
   }
 });
 
+console.log(`[*] CNS Server is at ${SERVER_HOST}:${SERVER_PORT}`)
+console.log(`[*] Dapr is at ${DAPR_HOST}:${DAPR_PORT}`)
+
 // Dapr client
 
 const client = new dapr.DaprClient({

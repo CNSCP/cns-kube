@@ -15,8 +15,10 @@ const HELM_BINARY = process.env.HELM_BINARY_PATH || 'suppress';
 function apply(properties) {
   const namespace = properties.namespace || '';
   const chartName = properties.chartName || '';
-  const releaseName = properties.releaseName || '';
+  let releaseName = properties.releaseName || '';
   const repoUrl = properties.repoUrl || '';
+
+  releaseName = releaseName.toLowerCase()
 
   if (namespace === '') throw new Error('namespace is required');
   if (chartName === '') throw new Error('chartName is required');
@@ -42,27 +44,14 @@ function apply(properties) {
 
 // Remove action
 function remove(properties) {
-  // Success
-  return {
-    action: 'removed',
-    status: 'not yet implemented'
-  };
-/*
   const namespace = properties.namespace || '';
-  const releaseName = properties.releaseName || '';
-
-  if (namespace === '') throw new Error('namespace is required');
-  if (releaseName === '') throw new Error('releaseName is required');
-
-  const output = spawn(`${HELM_BINARY} uninstall ${releaseName} --namespace ${namespace} --output json`);
-  const data = JSON.parse(output.toString());
-
-  // Success
+  let releaseName = properties.releaseName || '';
+  releaseName = releaseName.toLowerCase()
+  const output = spawn(`${HELM_BINARY} uninstall ${releaseName} --namespace ${namespace}`);
   return {
     action: 'removed',
-    status: data.info.status
+    status: output.toString()
   };
-*/
 }
 
 // Spawn helper
