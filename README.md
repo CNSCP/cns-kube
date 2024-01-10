@@ -55,6 +55,22 @@ The CNS Kube uses the following environment variables to configure itself:
 | CNS_PUBSUB       | CNS Dapr PUBSUB component ID     | 'cns-pubsub'           |
 | CNS_CONTEXT      | CNS Dapr context                 | Must be set            |
 
+#### Linux
+
+| Command                              | Description                           |
+|--------------------------------------|---------------------------------------|
+| env                                  | List all variables                    |
+| export [name]=[value]                | Set variable                          |
+| unset [name]                         | Remove variable                       |
+
+#### Windows
+
+| Command                              | Description                           |
+|--------------------------------------|---------------------------------------|
+| set                                  | List all variables                    |
+| set [name]=[value]                   | Set variable                          |
+| set [name]=                          | Remove variable                       |
+
 ### The kubecns.control Connection Profile
 
 | Property         | Role     | Description                                    |
@@ -64,9 +80,12 @@ The CNS Kube uses the following environment variables to configure itself:
 | namespace        | Client   | Namespace to install the application           |
 | releaseName      | Client   | Name of the Helm release                       |
 | chartName        | Client   | Name of the Helm chart                         |
+| helmValuesJSON   | Client   | Values for Helm as JSON string                 |
 | repoUrl          | Client   | URL of the application repository              |
 | contextID        | Client   | Broker context                                 |
 | contextToken     | Client   | Broker context token                           |
+| interfaceUrl     | Server   | User Interface URL or blank for none           |
+| interfaceMode    | Server   | Rendering mode of UI, either 'embed' or 'tab'  |
 | status           | Server   | Status of the last action performed            |
 
 #### Actions
@@ -77,7 +96,7 @@ The CNS Kube uses the following environment variables to configure itself:
 | applied          | Set when application successfully installed               |
 | remove           | Tell the installer to remove the application              |
 | removed          | Set when application successfully removed                 |
-| error            | Action caused an error (See status property)              |
+| error            | Action caused an error                                    |
 
 #### Installers
 
@@ -93,6 +112,16 @@ The CNS Kube uses the following environment variables to configure itself:
 | HELM_BINARY_PATH | Path to Helm binary              | Must be set            |
 
 ##### Kubectl Installer
+
+NYI
+
+#### Status
+
+| Status           | Description                                               |
+|------------------|-----------------------------------------------------------|
+| pending          | Application awaiting deployment                           |
+| deployed         | Application was successfully deployed                     |
+| failed           | Application failed to deploy                              |
 
 #### Example
 
