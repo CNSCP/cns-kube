@@ -16,17 +16,22 @@ const SERVER_PORT = process.env.CNS_SERVER_PORT || '3001';
 const DAPR_HOST = process.env.CNS_DAPR_HOST || 'localhost';
 const DAPR_PORT = process.env.CNS_DAPR_PORT || '3500';
 
-const CNS_APP_ID = process.env.CNS_APP_ID || 'cns-dapr';
+const CNS_DAPR = process.env.CNS_DAPR || 'cns-dapr';
 const CNS_PUBSUB = process.env.CNS_PUBSUB || 'cns-pubsub';
+const CNS_CONTEXT = process.env.CNS_CONTEXT || '';
 
-const KUBE_PROFILE = 'kubecns.control';
-const KUBE_VERSION = '';
-const KUBE_ROLE = 'server';
+// Installers
 
 const KUBE_INSTALLERS = [
   'helm',
   'kubectl'
 ];
+
+// Control profile
+
+const KUBE_PROFILE = 'kubecns.control';
+const KUBE_VERSION = '';
+const KUBE_ROLE = 'server';
 
 const KUBE_SYNCTIME = 2000;
 
@@ -147,15 +152,20 @@ async function updateConnection(id) {
   // Has result?
   if (result !== undefined) {
     // Post action result
-    const res = await client.invoker.invoke(
-      CNS_APP_ID,
-      'node/connections/' + id + '/properties',
-      dapr.HttpMethod.POST,
-      result);
+    try {
+      const res = await client.invoker.invoke(
+        CNS_DAPR,
+        CNS_CONTEXT + '/connections/' + id + '/properties',
+        dapr.HttpMethod.POST,
+        result);
 
-    // Server error?
-    if (res.error !== undefined)
-      console.error('Error:', res.error);
+      // Server error?
+      if (res.error !== undefined)
+        throw new Error(res.error);
+    } catch(e) {
+      // Failure
+      console.error('Error:', e.message);
+    }
   }
 }
 
@@ -254,6 +264,10 @@ function syncNode(data) {
 
 // Client application
 async function start() {
+  // No context?
+  if (CNS_CONTEXT === '')
+    throw new Error('not configured');
+
   // Bind installer modules
   bindInstallers();
 
@@ -262,19 +276,21 @@ async function start() {
 
   // Fetch node state
   const res = await client.invoker.invoke(
-    CNS_APP_ID,
-    'node',
+    CNS_DAPR,
+    CNS_CONTEXT,
     dapr.HttpMethod.GET);
 
   // Server error?
   if (res.error !== undefined)
-    console.error('Error:', res.error);
-  else await updateNode(res.data);
+    throw new Error(res.error);
+
+  // Initial update
+  await updateNode(res.data);
 
   // Subscribe to changes
   server.pubsub.subscribe(
     CNS_PUBSUB,
-    'node',
+    CNS_CONTEXT,
     (KUBE_SYNCTIME > 0)?syncNode:updateNode);
 
   // Start server

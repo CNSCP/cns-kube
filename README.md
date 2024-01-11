@@ -11,6 +11,10 @@
 
 ## About
 
+This repository contains an application that talks to the CNS Dapr Sidecar, written in [Node.js](https://nodejs.org/en/about) and using the [Dapr SDK](https://docs.dapr.io/developing-applications/sdks/js/). The application is used in conjunction with CNS Dapr and it is assumed this is already installed and running (See the [CNS Dapr](https://github.com/CNSCP/cns-dapr) repository for details).
+
+When running, the application monitors `kubecns.control` server connections and installs or uninstalls applications based upon the properties of those connections.
+
 ## Installing
 
 To **install** or **update** the application, you should fetch the latest version from this Git repository. To do that, you may either download and unpack the repo zip file, or clone the repo using:
@@ -32,72 +36,94 @@ Your application should now be ready to rock.
 Once installed, run the application with:
 
 ```sh
-npm run start:dapr
+npm run start
 ```
 
 To shut down the application, hit `ctrl-c`.
 
 ### Environment Variables
 
-The application uses the following environment variables to configure itself:
+The CNS Kube uses the following environment variables to configure itself:
 
-#### CNS Kube
+| Name             | Description                      | Default                |
+|------------------|----------------------------------|------------------------|
+| CNS_SERVER_HOST  | CNS Kube server host             | 'localhost'            |
+| CNS_SERVER_PORT  | CNS Kube server port             | '3001'                 |
+| CNS_DAPR_HOST    | Dapr host                        | 'localhost'            |
+| CNS_DAPR_PORT    | Dapr port                        | '3500'                 |
+| CNS_DAPR         | CNS Dapr application ID          | 'cns-dapr'             |
+| CNS_PUBSUB       | CNS Dapr PUBSUB component ID     | 'cns-pubsub'           |
+| CNS_CONTEXT      | CNS Dapr context                 | Must be set            |
 
-<table>
-  <tr><th>Name</th><th>Description</th><th>Default</th></tr>
-  <tr><td>CNS_SERVER_HOST</td><td>CNS Kube server host</td><td>'localhost'</td></tr>
-  <tr><td>CNS_SERVER_PORT</td><td>CNS Kube server port</td><td>'3001'</td></tr>
-  <tr><td>CNS_DAPR_HOST</td><td>Dapr host</td><td>'localhost'</td></tr>
-  <tr><td>CNS_DAPR_PORT</td><td>Dapr port</td><td>'3500'</td></tr>
-  <tr><td>CNS_APP_ID</td><td>CNS Dapr application ID</td><td>'cns-dapr'</td></tr>
-  <tr><td>CNS_PUBSUB</td><td>CNS Dapr PUBSUB component ID</td><td>'cns-pubsub'</td></tr>
-</table>
+#### Linux
 
-#### Helm Installer
+| Command                              | Description                           |
+|--------------------------------------|---------------------------------------|
+| env                                  | List all variables                    |
+| export [name]=[value]                | Set variable                          |
+| unset [name]                         | Remove variable                       |
 
-<table>
-  <tr><th>Name</th><th>Description</th><th>Default</th></tr>
-  <tr><td>HELM_BINARY_PATH</td><td>Path to Helm binary</td><td>Must be set</td></tr>
-</table>
+#### Windows
 
-#### KubeCtl Installer
+| Command                              | Description                           |
+|--------------------------------------|---------------------------------------|
+| set                                  | List all variables                    |
+| set [name]=[value]                   | Set variable                          |
+| set [name]=                          | Remove variable                       |
 
-<table>
-  <tr><th>Name</th><th>Description</th><th>Default</th></tr>
-  <tr><td colspan="3">NYI</td></tr>
-</table>
+### The kubecns.control Connection Profile
 
-### kubecns.control Profile
+| Property         | Role     | Description                                    |
+|------------------|----------|------------------------------------------------|
+| action           | Client   | Action to perform                              |
+| installer        | Client   | Installer you wish to use                      |
+| namespace        | Client   | Namespace to install the application           |
+| releaseName      | Client   | Name of the Helm release                       |
+| chartName        | Client   | Name of the Helm chart                         |
+| helmValuesJSON   | Client   | Values for Helm as JSON string                 |
+| repoUrl          | Client   | URL of the application repository              |
+| contextID        | Client   | Broker context                                 |
+| contextToken     | Client   | Broker context token                           |
+| interfaceUrl     | Server   | User Interface URL or blank for none           |
+| interfaceMode    | Server   | Rendering mode of UI, either 'embed' or 'tab'  |
+| status           | Server   | Status of the last action performed            |
 
-<table>
-  <tr><th>Property</th><th>Role</th><th>Description</th></tr>
-  <tr><td>installer</td><td>Client</td><td>The installer you wish to use</td></tr>
-  <tr><td>action</td><td>Client</td><td>The action to perform</td></tr>
-  <tr><td>namespace</td><td>Client</td><td>The namespace to install the application</td></tr>
-  <tr><td>releaseName</td><td>Client</td><td>The name of the Helm release</td></tr>
-  <tr><td>chartName</td><td>Client</td><td>The name of the Helm chart</td></tr>
-  <tr><td>repoUrl</td><td>Client</td><td>The URL of the Helm repository</td></tr>
-  <tr><td>status</td><td>Server</td><td>The status of the last action</td></tr>
-</table>
+#### Actions
 
-<table>
-  <tr><th>Installer</th><th>Description</th></tr>
-  <tr><td>helm</td><td>Use Helm as application installer</td></tr>
-  <tr><td>kubectl</td><td>NYI</td></tr>
-</table>
+| Action           | Description                                               |
+|------------------|-----------------------------------------------------------|
+| apply            | Tell the installer to add the application                 |
+| applied          | Set when application successfully installed               |
+| remove           | Tell the installer to remove the application              |
+| removed          | Set when application successfully removed                 |
+| error            | Action caused an error                                    |
 
-<table>
-  <tr><th>Action</th><th>Description</th></tr>
-  <tr><td>apply</td><td>Tells the installer to add the application</td></tr>
-  <tr><td>applied</td><td>When application successfully installed</td></tr>
-  <tr><td>remove</td><td>Tells the installer to remove the application</td></tr>
-  <tr><td>removed</td><td>When application successfully removed</td></tr>
-  <tr><td>error</td><td>Previous action caused an error (see status property)</td></tr>
-</table>
+#### Installers
+
+| Installer        | Description                                               |
+|------------------|-----------------------------------------------------------|
+| helm             | Use Helm as application installer                         |
+| kubectl          | NYI                                                       |
+
+##### Helm Installer
+
+| Name             | Description                      | Default                |
+|------------------|----------------------------------|------------------------|
+| HELM_BINARY_PATH | Path to Helm binary              | Must be set            |
+
+##### Kubectl Installer
+
+NYI
+
+#### Status
+
+| Status           | Description                                               |
+|------------------|-----------------------------------------------------------|
+| pending          | Application awaiting deployment                           |
+| deployed         | Application was successfully deployed                     |
+| failed           | Application failed to deploy                              |
 
 #### Example
-
-
 
 ## Maintainers
 
