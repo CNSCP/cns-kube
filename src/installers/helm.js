@@ -24,6 +24,7 @@ function apply(properties) {
   var values
   var port
   var contextId
+  var interfaceUrl
 
   releaseName = releaseName.toLowerCase()
 
@@ -66,7 +67,7 @@ function apply(properties) {
     // it to be lowercase, otherwise the tunnel does not start.
     if (key == KTUNNEL_ENABLED_KEY && values[key] == "true") {
       contextId = properties.contextID.toLowerCase()
-      install.push(`--set ${KTUNNEL_ID_KEY}=${contextId}`)
+      install.push(`--set ${KTUNNEL_ID_KEY}=kt-${contextId}`)
     }
 
     // If the property is ktunnel.port, save that information for later
@@ -83,9 +84,8 @@ function apply(properties) {
 
   port = port || KTUNNEL_DEFAULT_PORT
   let interfaceMode = properties.interfaceMode || null
-  var interfaceUrl
   if (contextId && port ) {
-    interfaceUrl = `https://${INTERFACE_HOST}/id/${contextId}/port/${port}`
+    interfaceUrl = `https://kt-${contextId}_${port}.${INTERFACE_HOST}`
   } else {
     interfaceUrl = null
   }
@@ -97,6 +97,7 @@ function apply(properties) {
     interfaceMode: interfaceMode,
     interfaceUrl: interfaceUrl,
   };
+  console.log(response)
   return response
 }
 
