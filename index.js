@@ -300,6 +300,6 @@ async function start() {
 
 // Start application
 start().catch((e) => {
-  console.error('Error:', e.message);
+  console.error('System Error:', e.message);
   process.exit(1);
 });
