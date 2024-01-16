@@ -107,9 +107,14 @@ The CNS Kube uses the following environment variables to configure itself:
 
 ##### Helm Installer
 
-| Name             | Description                      | Default                |
-|------------------|----------------------------------|------------------------|
-| HELM_BINARY_PATH | Path to Helm binary              | Must be set            |
+| Name                | Description                                          | Default                |
+|---------------------|------------------------------------------------------|------------------------|
+| HELM_BINARY_PATH    | Path to Helm binary                                  | Must be set            |
+| KTUNNEL_ENABLED_KEY | The helm values.yaml key to enable ktunnel           | ktunnel.enabled        |
+| KTUNNEL_PORT_KEY    | The helm values.yaml key to set which port to tunnel | ktunnel.port           |
+| KTUNNEL_ID_KEY      | The helm values.yaml file to set the tunnel ID       | ktunnel.id             |
+| INTERFACE_HOST      | The ingress host for the tunneled application        | ibb.staging.padi.io    |
+| KTUNNEL_DEFAULT_PORT | The default port to tunnel                          | 8080                   |
 
 ##### Kubectl Installer
 
@@ -122,6 +127,19 @@ NYI
 | pending          | Application awaiting deployment                           |
 | deployed         | Application was successfully deployed                     |
 | failed           | Application failed to deploy                              |
+
+#### Helm Values JSON
+
+Optionally, a HelmValuesJSON property may be sent along with the properties. This should be in valid JSON as string.
+
+To use the ibb-application chart, you must pass at least the following values into the Helm Values property:
+
+```
+{
+  "ktunnel.enabled": "true",
+  "ktunnel.port": "<PORT YOU WISH TO TUNNEL>"
+}
+```
 
 #### Example
 

@@ -8,8 +8,12 @@
 const cp = require('child_process');
 
 // Constants
-
 const HELM_BINARY = process.env.HELM_BINARY_PATH || 'suppress';
+const KTUNNEL_ENABLED_KEY = process.env.KTUNNEL_ENABLE_VALUE || "ktunnel.enabled"
+const KTUNNEL_PORT_KEY = process.env.KTUNNEL_PORT_KEY || 'ktunnel.port'
+const KTUNNEL_ID_KEY = process.env.KTUNNEL_ID_KEY || "ktunnel.id"
+const INTERFACE_HOST = process.env.INTERFACE_HOST || "ibb.staging.padi.io"
+const KTUNNEL_DEFAULT_PORT = process.env.KTUNNEL_DEFAULT_PORT || "8080"
 
 // Apply action
 function apply(properties) {
@@ -17,6 +21,10 @@ function apply(properties) {
   const chartName = properties.chartName || '';
   let releaseName = properties.releaseName || '';
   const repoUrl = properties.repoUrl || '';
+  var values
+  var port
+  var contextId
+  var interfaceUrl
 
   releaseName = releaseName.toLowerCase()
 
@@ -32,14 +40,65 @@ function apply(properties) {
     repoName = `${chartName}/`;
   }
 
-  const output = spawn(`${HELM_BINARY} upgrade --install ${releaseName} ${repoName}${chartName} --namespace ${namespace} --output json`);
+  // Install is a list which is turned into the helm command used to install the chart
+  let install = []
+
+  install.push(HELM_BINARY)
+  install.push("upgrade --install")
+  install.push(releaseName)
+  install.push(`${repoName}${chartName}`)
+  install.push(`--namespace ${namespace}`)
+  install.push("--output json")
+
+  try {
+    values = JSON.parse(properties.helmValuesJSON)
+  } catch (error) {
+    // Return error if JSON parsing fails
+    return {
+      action: 'errored',
+      status: "unable to parse helm values as JSON",
+      interfaceMode: null,
+      interfaceUrl: null,
+    }
+  }
+
+  for (var key in values) {
+    // If KTunnel is enabled, set the ID to the ContextID. Ktunnel requires
+    // it to be lowercase, otherwise the tunnel does not start.
+    if (key == KTUNNEL_ENABLED_KEY && values[key] == "true") {
+      contextId = properties.contextID.toLowerCase()
+      install.push(`--set ${KTUNNEL_ID_KEY}=kt-${contextId}`)
+    }
+
+    // If the property is ktunnel.port, save that information for later
+    if (key == KTUNNEL_PORT_KEY) {
+      port = values[key]
+    }
+    install.push(`--set ${key}=${values[key]}`)
+  }
+  
+
+  let cmd = install.join(" ")
+  const output = spawn(`${cmd}`)
   const data = JSON.parse(output.toString());
 
+  port = port || KTUNNEL_DEFAULT_PORT
+  let interfaceMode = properties.interfaceMode || null
+  if (contextId && port ) {
+    interfaceUrl = `https://kt-${contextId}_${port}.${INTERFACE_HOST}`
+  } else {
+    interfaceUrl = null
+  }
+
   // Success
-  return {
+  let response = {
     action: 'applied',
-    status: data.info.status
+    status: data.info.status,
+    interfaceMode: interfaceMode,
+    interfaceUrl: interfaceUrl,
   };
+  console.log(response)
+  return response
 }
 
 // Remove action
