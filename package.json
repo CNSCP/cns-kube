@@ -6,11 +6,9 @@
   "license": "ISC",
   "main": "index.js",
   "scripts": {
-    "start": "dapr run --app-id cns-kube --app-port 3001 --app-protocol http --resources-path ../cns-dapr/components -- node index",
-    "stop": "dapr stop --app-id cns-dapr",
-    "start:dapr": "npm run start",
-    "stop:dapr": "npm run stop",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index",
+    "start:dapr": "dapr run --app-id cns-kube --app-port 3001 --app-protocol http --resources-path ../cns-dapr/components -- node index",
+    "stop:dapr": "dapr stop --app-id cns-dapr"
   },
   "dependencies": {
     "@dapr/dapr": "^3.1.2",

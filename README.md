@@ -33,11 +33,13 @@ Your application should now be ready to rock.
 
 ## Usage
 
-Once installed, run the application with:
+Once installed, run the application locally with:
 
 ```sh
-npm run start
+npm run start:dapr
 ```
+
+* NOTE: `dapr` must be installed and running on your local machine for this command to work. If you want just the node server, use `npm run start`
 
 To shut down the application, hit `ctrl-c`.
 
