@@ -6,10 +6,10 @@
   "configurations": [
     {
       "command": "npm run start:dapr",
-      "name": "NPM Start",
+      "name": "NPM Start (Local)",
       "request": "launch",
       "type": "node-terminal",
-      "envFile": "${workspaceFolder}/.env.staging"
+      "envFile": "${workspaceFolder}/.env.local"
   }
   ]
 }
