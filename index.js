@@ -7,6 +7,7 @@
 
 const dapr = require('@dapr/dapr');
 const merge = require('object-merge');
+require('dotenv').config()
 
 // Constants
 
