@@ -40,6 +40,9 @@ function apply(properties) {
     repoName = `${chartName}/`;
   }
 
+  // Upgrade the charts
+  spawn(`${HELM_BINARY} repo update`);
+
   // Install is a list which is turned into the helm command used to install the chart
   let install = []
 
