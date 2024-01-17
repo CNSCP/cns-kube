@@ -24,7 +24,7 @@ spec:
       serviceAccountName: kubecns
       containers:
         - name: cns-kube
-          image: us-central1-docker.pkg.dev/padi-staging/public/cns-kube:d02183f
+          image: us-central1-docker.pkg.dev/padi-staging/public/cns-kube:0bd95ef
           ports:
           - containerPort: 3001
           env:
@@ -32,3 +32,5 @@ spec:
             value: "irVyJaxBcqa3Jemfq2mE"
           - name: HELM_BINARY_PATH
             value: "/usr/local/bin/helm"
+          - name: DEBUG
+            value: "true"

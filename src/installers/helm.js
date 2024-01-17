@@ -8,6 +8,7 @@
 const cp = require('child_process');
 
 // Constants
+const DEBUG = Boolean(process.env.DEBUG) || false
 const HELM_BINARY = process.env.HELM_BINARY_PATH || 'suppress';
 const KTUNNEL_ENABLED_KEY = process.env.KTUNNEL_ENABLE_VALUE || "ktunnel.enabled"
 const KTUNNEL_PORT_KEY = process.env.KTUNNEL_PORT_KEY || 'ktunnel.port'
@@ -53,8 +54,10 @@ function apply(properties) {
   install.push(`--namespace ${namespace}`)
   install.push("--output json")
 
-  console.log("[*] Properties are")
-  console.log(properties)
+  if (DEBUG) {
+    console.log("[*] Properties are")
+    console.log(properties)
+  }
 
   try {
     values = JSON.parse(properties.helmValuesJSON)
@@ -73,6 +76,11 @@ function apply(properties) {
     // it to be lowercase, otherwise the tunnel does not start.
     if (key == KTUNNEL_ENABLED_KEY && values[key] == "true") {
       contextId = properties.contextID.toLowerCase()
+      if (contextId == undefined) {
+        // Generate random alphanumeric string
+        console.log("[!] Context ID Was not set. Setting to random string...")
+        contextId = Math.random().toString(36).substring(3,13)
+      }
       install.push(`--set ${KTUNNEL_ID_KEY}=kt-${contextId}`)
     }
 
@@ -103,7 +111,9 @@ function apply(properties) {
     interfaceMode: interfaceMode,
     interfaceUrl: interfaceUrl,
   };
-  console.log(response)
+  if (DEBUG) {
+    console.log(response)
+  }
   return response
 }
 
