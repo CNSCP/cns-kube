@@ -53,6 +53,9 @@ function apply(properties) {
   install.push(`--namespace ${namespace}`)
   install.push("--output json")
 
+  console.log("[*] Properties are")
+  console.log(properties)
+
   try {
     values = JSON.parse(properties.helmValuesJSON)
   } catch (error) {

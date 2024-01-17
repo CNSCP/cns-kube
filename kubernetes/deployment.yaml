@@ -24,7 +24,7 @@ spec:
       serviceAccountName: kubecns
       containers:
         - name: cns-kube
-          image: us-central1-docker.pkg.dev/padi-staging/public/cns-kube:e2f6362
+          image: us-central1-docker.pkg.dev/padi-staging/public/cns-kube:d02183f
           ports:
           - containerPort: 3001
           env:
