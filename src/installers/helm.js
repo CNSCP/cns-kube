@@ -76,11 +76,6 @@ function apply(properties) {
     // it to be lowercase, otherwise the tunnel does not start.
     if (key == KTUNNEL_ENABLED_KEY && values[key] == "true") {
       contextId = properties.contextID.toLowerCase()
-      if (contextId == undefined) {
-        // Generate random alphanumeric string
-        console.log("[!] Context ID Was not set. Setting to random string...")
-        contextId = Math.random().toString(36).substring(3,13)
-      }
       install.push(`--set ${KTUNNEL_ID_KEY}=kt-${contextId}`)
     }
 
