@@ -8,10 +8,10 @@
 const cp = require('child_process');
 
 // Constants
-const DEBUG = Boolean(process.env.DEBUG) || false
+const DEBUG = process.env.DEBUG || "false"
 const HELM_BINARY = process.env.HELM_BINARY_PATH || 'suppress';
 const KTUNNEL_ENABLED_KEY = process.env.KTUNNEL_ENABLE_VALUE || "ktunnel.enabled"
-const KTUNNEL_PORT_KEY = process.env.KTUNNEL_PORT_KEY || 'ktunnel.port'
+const KTUNNEL_PORT_KEY = process.env.KTUNNEL_PORT_KEY || 'service.port'
 const KTUNNEL_ID_KEY = process.env.KTUNNEL_ID_KEY || "ktunnel.id"
 const INTERFACE_HOST = process.env.INTERFACE_HOST || "ibb.staging.padi.io"
 const KTUNNEL_DEFAULT_PORT = process.env.KTUNNEL_DEFAULT_PORT || "8080"
@@ -54,7 +54,7 @@ function apply(properties) {
   install.push(`--namespace ${namespace}`)
   install.push("--output json")
 
-  if (DEBUG) {
+  if (DEBUG == "true") {
     console.log("[*] Properties are")
     console.log(properties)
   }
@@ -74,18 +74,22 @@ function apply(properties) {
   for (var key in values) {
     // If KTunnel is enabled, set the ID to the ContextID. Ktunnel requires
     // it to be lowercase, otherwise the tunnel does not start.
-    if (key == KTUNNEL_ENABLED_KEY && values[key] == "true") {
+    if (key == KTUNNEL_ENABLED_KEY && values[key].toLowerCase() == "true") {
       contextId = properties.contextID.toLowerCase()
       install.push(`--set ${KTUNNEL_ID_KEY}=kt-${contextId}`)
     }
 
-    // If the property is ktunnel.port, save that information for later
+    // If the property is the port we need to forward, save that information for later
     if (key == KTUNNEL_PORT_KEY) {
       port = values[key]
     }
     install.push(`--set ${key}=${values[key]}`)
   }
   
+  if (DEBUG == "true") {
+    console.log("[*] CMD")
+    console.log(install)
+  }
 
   let cmd = install.join(" ")
   const output = spawn(`${cmd}`)
