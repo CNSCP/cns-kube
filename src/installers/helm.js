@@ -35,7 +35,7 @@ function apply(properties) {
   // All of these consts have been checked for truthiness
   const namespace = properties.namespace
   const chartName = properties.chartName
-  const releaseName = properties.releaseName.toLowerCase()
+  const releaseName = properties.releaseName.toLowerCase().replace(" ", "")
   const repoUrl = properties.repoUrl  
   const contextId = properties.contextID
   const contextToken = properties.contextToken
@@ -143,7 +143,7 @@ function apply(properties) {
 function remove(properties) {
   const namespace = properties.namespace || '';
   let releaseName = properties.releaseName || '';
-  releaseName = releaseName.toLowerCase()
+  releaseName = releaseName.toLowerCase().replace(" ", "")
   const output = spawn(`${HELM_BINARY} uninstall ${releaseName} --namespace ${namespace}`);
   return {
     action: 'removed',
