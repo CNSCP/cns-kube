@@ -18,22 +18,27 @@ const KTUNNEL_DEFAULT_PORT = process.env.KTUNNEL_DEFAULT_PORT || "8080"
 
 // Apply action
 function apply(properties) {
-  const namespace = properties.namespace || '';
-  const chartName = properties.chartName || '';
-  let releaseName = properties.releaseName || '';
-  const repoUrl = properties.repoUrl || '';
-  var values
-  var port
-  var contextId
-  var interfaceUrl
+  var values, port, interfaceUrl, repoName
+  let resp = {}
+  let ktunnel_enabled = false
 
-  releaseName = releaseName.toLowerCase()
+  if (DEBUG == "true") {
+    console.log("[*] Properties are")
+    console.log(properties)
+  }
 
-  if (namespace === '') throw new Error('namespace is required');
-  if (chartName === '') throw new Error('chartName is required');
-  if (releaseName === '') throw new Error('releaseName is required');
+  let valid_properties = _checkValidProperties(properties)
+  if (!valid_properties) {
+    return {}
+  }
 
-  var repoName = '';
+  // All of these consts have been checked for truthiness
+  const namespace = properties.namespace
+  const chartName = properties.chartName
+  const releaseName = properties.releaseName.toLowerCase()
+  const repoUrl = properties.repoUrl  
+  const contextId = properties.contextID
+  const contextToken = properties.contextToken
 
   if (repoUrl !== '') {
     // Install the helm chart
@@ -54,29 +59,38 @@ function apply(properties) {
   install.push(`--namespace ${namespace}`)
   install.push("--output json")
 
-  if (DEBUG == "true") {
-    console.log("[*] Properties are")
-    console.log(properties)
-  }
 
+  // Try to parse incoming helm values as JSON
+  // If no values provided, return empty (valid) object
   try {
-    values = JSON.parse(properties.helmValuesJSON)
+    if (properties.helmValuesJSON) {
+      values = JSON.parse(properties.helmValuesJSON)
+    } else {
+      values = {}
+    }
   } catch (error) {
     // Return error if JSON parsing fails
-    return {
-      action: 'errored',
-      status: "unable to parse helm values as JSON",
-      interfaceMode: null,
-      interfaceUrl: null,
-    }
+    resp['action'] = 'errored'
+    resp['status'] = 'unable to parse helm values as JSON'
+    return resp
+  }
+
+  // TODO: 
+  // if chart is ibb-cns-application or edge-central
+  // then --set cnsDapr.cnsContext=properties.context and same for Token
+  const cnsApps = ["edge-central", "ibb-cns-application"]
+  if (cnsApps.includes(chartName)) {
+    install.push(`--set cnsDapr.cnsContext=${contextId}`)
+    install.push(`--set cnsDapr.cnsToken=${contextToken}`)
   }
 
   for (var key in values) {
     // If KTunnel is enabled, set the ID to the ContextID. Ktunnel requires
     // it to be lowercase, otherwise the tunnel does not start.
     if (key == KTUNNEL_ENABLED_KEY && values[key].toLowerCase() == "true") {
-      contextId = properties.contextID.toLowerCase()
-      install.push(`--set ${KTUNNEL_ID_KEY}=kt-${contextId}`)
+      let cid = contextId.toLowerCase()
+      install.push(`--set ${KTUNNEL_ID_KEY}=kt-${cid}`)
+      ktunnel_enabled = true
     }
 
     // If the property is the port we need to forward, save that information for later
@@ -96,11 +110,20 @@ function apply(properties) {
   const data = JSON.parse(output.toString());
 
   port = port || KTUNNEL_DEFAULT_PORT
-  let interfaceMode = properties.interfaceMode || null
+  let interfaceMode = properties.interfaceMode || "embed"
   if (contextId && port ) {
-    interfaceUrl = `https://kt-${contextId}_${port}.${INTERFACE_HOST}`
+    let cid = contextId.toLowerCase()
+    interfaceUrl = `https://kt-${cid}_${port}.${INTERFACE_HOST}`
   } else {
     interfaceUrl = null
+  }
+
+  resp['action'] = 'applied'
+  resp['status'] = data.info.status
+
+  if (contextId && port && ktunnel_enabled) {
+    resp['interfaceMode'] = interfaceMode
+    resp['interfaceUrl'] = interfaceUrl
   }
 
   // Success
@@ -111,9 +134,9 @@ function apply(properties) {
     interfaceUrl: interfaceUrl,
   };
   if (DEBUG) {
-    console.log(response)
+    console.log(resp)
   }
-  return response
+  return resp
 }
 
 // Remove action
@@ -136,6 +159,38 @@ function spawn(command) {
     return '{"info": {"status": "suppressed"}}';
 
   return cp.execSync(command);
+}
+
+// Check that incoming properties are valid
+function _checkValidProperties(properties) {
+  let required_properties = [
+    "chartName",
+    "contextID",
+    "contextToken",
+    "installer",
+    "namespace",
+    "releaseName",
+    "repoUrl",
+  ]
+
+  let valid = true
+
+  required_properties.forEach(rp => {
+    if (!properties[rp]) {
+      valid = false
+    }
+  })
+
+  return valid
+
+  // for (var p in required_properties) {
+  //   console.log(p)
+  //   if (!properties[p]) {
+  //     console.log(`Property ${p} not found`)
+  //     return false
+  //   }
+  // }
+  // return true
 }
 
 // Exports
