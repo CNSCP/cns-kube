@@ -9,6 +9,7 @@ const dapr = require('@dapr/dapr');
 
 const env = require('dotenv').config();
 const merge = require('object-merge');
+require('dotenv').config()
 
 const pack = require('./package.json');
 
@@ -341,6 +342,6 @@ async function start() {
 
 // Start application
 start().catch((e) => {
-  console.error('Error:', e.message);
+  console.error('System Error:', e.message);
   process.exit(1);
 });

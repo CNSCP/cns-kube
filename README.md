@@ -33,11 +33,13 @@ Your application should now be ready to rock.
 
 ## Usage
 
-Once installed, run the application with:
+Once installed, run the application locally with:
 
 ```sh
-npm run start
+npm run start:dapr
 ```
+
+* NOTE: `dapr` must be installed and running on your local machine for this command to work. If you want just the node server, use `npm run start`
 
 To shut down the application, hit `ctrl-c`.
 
@@ -93,9 +95,14 @@ Alternatively, variables can be stored in a `.env` file in the project directory
 
 ##### Helm Installer
 
-| Name             | Description                      | Default                |
-|------------------|----------------------------------|------------------------|
-| HELM_BINARY_PATH | Path to Helm binary              | Must be set            |
+| Name                | Description                                          | Default                |
+|---------------------|------------------------------------------------------|------------------------|
+| HELM_BINARY_PATH    | Path to Helm binary                                  | Must be set            |
+| KTUNNEL_ENABLED_KEY | The helm values.yaml key to enable ktunnel           | ktunnel.enabled        |
+| KTUNNEL_PORT_KEY    | The helm values.yaml key to set which port to tunnel | service.port           |
+| KTUNNEL_ID_KEY      | The helm values.yaml file to set the tunnel ID       | ktunnel.id             |
+| INTERFACE_HOST      | The ingress host for the tunneled application        | ibb.staging.padi.io    |
+| KTUNNEL_DEFAULT_PORT | The default port to tunnel                          | 8080                   |
 
 ##### Kubectl Installer
 
