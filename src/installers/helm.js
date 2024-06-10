@@ -47,10 +47,11 @@ function remove(properties) {
   const namespace = properties.namespace || '';
   let releaseName = properties.releaseName || '';
   releaseName = releaseName.toLowerCase()
-  const output = spawn(`${HELM_BINARY} uninstall ${releaseName} --namespace ${namespace}`);
+  const output = spawn(`${HELM_BINARY} uninstall ${releaseName} --namespace ${namespace} --output json`);
+  const data = JSON.parse(output.toString());
   return {
     action: 'removed',
-    status: output.toString()
+    status: data.info.status
   };
 }
 

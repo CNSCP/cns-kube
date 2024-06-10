@@ -13,7 +13,7 @@
 
 This repository contains an application that talks to the CNS Dapr Sidecar, written in [Node.js](https://nodejs.org/en/about) and using the [Dapr SDK](https://docs.dapr.io/developing-applications/sdks/js/). The application is used in conjunction with CNS Dapr and it is assumed this is already installed and running (See the [CNS Dapr](https://github.com/CNSCP/cns-dapr) repository for details).
 
-When running, the application monitors `kubecns.control` server connections and installs or uninstalls applications based upon the properties of those connections.
+When running, the application monitors `cp:kubecns.control.v1:provider` connections and installs or uninstalls applications based upon the properties of those connections.
 
 ## Installing
 
@@ -47,31 +47,17 @@ The CNS Kube uses the following environment variables to configure itself:
 
 | Name             | Description                      | Default                |
 |------------------|----------------------------------|------------------------|
+| CNS_CONTEXT      | CNS Broker context               | Must be set            |
+| CNS_DAPR         | CNS Dapr application             | 'cns-dapr'             |
+| CNS_DAPR_HOST    | CNS Dapr host                    | 'localhost'            |
+| CNS_DAPR_PORT    | CNS Dapr port                    | '3500'                 |
+| CNS_PUBSUB       | CNS Dapr PUBSUB component        | 'cns-pubsub'           |
 | CNS_SERVER_HOST  | CNS Kube server host             | 'localhost'            |
 | CNS_SERVER_PORT  | CNS Kube server port             | '3001'                 |
-| CNS_DAPR_HOST    | Dapr host                        | 'localhost'            |
-| CNS_DAPR_PORT    | Dapr port                        | '3500'                 |
-| CNS_DAPR         | CNS Dapr application ID          | 'cns-dapr'             |
-| CNS_PUBSUB       | CNS Dapr PUBSUB component ID     | 'cns-pubsub'           |
-| CNS_CONTEXT      | CNS Dapr context                 | Must be set            |
 
-#### Linux
+Alternatively, variables can be stored in a `.env` file in the project directory.
 
-| Command                              | Description                           |
-|--------------------------------------|---------------------------------------|
-| env                                  | List all variables                    |
-| export [name]=[value]                | Set variable                          |
-| unset [name]                         | Remove variable                       |
-
-#### Windows
-
-| Command                              | Description                           |
-|--------------------------------------|---------------------------------------|
-| set                                  | List all variables                    |
-| set [name]=[value]                   | Set variable                          |
-| set [name]=                          | Remove variable                       |
-
-### The kubecns.control Connection Profile
+### cp:kubecns.control.v1 Capability
 
 | Property         | Role     | Description                                    |
 |------------------|----------|------------------------------------------------|
@@ -82,8 +68,8 @@ The CNS Kube uses the following environment variables to configure itself:
 | chartName        | Client   | Name of the Helm chart                         |
 | helmValuesJSON   | Client   | Values for Helm as JSON string                 |
 | repoUrl          | Client   | URL of the application repository              |
-| contextID        | Client   | Broker context                                 |
-| contextToken     | Client   | Broker context token                           |
+| contextID        | Client   | CNS Broker context                             |
+| contextToken     | Client   | CNS Broker token                               |
 | interfaceUrl     | Server   | User Interface URL or blank for none           |
 | interfaceMode    | Server   | Rendering mode of UI, either 'embed' or 'tab'  |
 | status           | Server   | Status of the last action performed            |
@@ -122,8 +108,6 @@ NYI
 | pending          | Application awaiting deployment                           |
 | deployed         | Application was successfully deployed                     |
 | failed           | Application failed to deploy                              |
-
-#### Example
 
 ## Maintainers
 

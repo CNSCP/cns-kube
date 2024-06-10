@@ -6,19 +6,63 @@
 // Imports
 
 const dapr = require('@dapr/dapr');
+
+const env = require('dotenv').config();
 const merge = require('object-merge');
 
-// Constants
+const pack = require('./package.json');
 
-const SERVER_HOST = process.env.CNS_SERVER_HOST || 'localhost';
-const SERVER_PORT = process.env.CNS_SERVER_PORT || '3001';
+// Errors
 
-const DAPR_HOST = process.env.CNS_DAPR_HOST || 'localhost';
-const DAPR_PORT = process.env.CNS_DAPR_PORT || '3500';
+const E_CONTEXT = 'no context';
 
-const CNS_DAPR = process.env.CNS_DAPR || 'cns-dapr';
-const CNS_PUBSUB = process.env.CNS_PUBSUB || 'cns-pubsub';
-const CNS_CONTEXT = process.env.CNS_CONTEXT || '';
+// Defaults
+
+const defaults = {
+  CNS_CONTEXT: '',
+  CNS_DAPR: 'cns-dapr',
+  CNS_DAPR_HOST: 'localhost',
+  CNS_DAPR_PORT: '3500',
+  CNS_PUBSUB: 'cns-pubsub',
+  CNS_SERVER_HOST: 'localhost',
+  CNS_SERVER_PORT: '3001'
+};
+
+// Config
+
+const config = {
+  CNS_CONTEXT: process.env.CNS_CONTEXT || defaults.CNS_CONTEXT,
+  CNS_DAPR: process.env.CNS_DAPR || defaults.CNS_DAPR,
+  CNS_DAPR_HOST: process.env.CNS_DAPR_HOST || defaults.CNS_DAPR_HOST,
+  CNS_DAPR_PORT: process.env.CNS_DAPR_PORT || defaults.CNS_DAPR_PORT,
+  CNS_PUBSUB: process.env.CNS_PUBSUB || defaults.CNS_PUBSUB,
+  CNS_SERVER_HOST: process.env.CNS_SERVER_HOST || defaults.CNS_SERVER_HOST,
+  CNS_SERVER_PORT: process.env.CNS_SERVER_PORT || defaults.CNS_SERVER_PORT
+};
+
+// Dapr client
+
+const client = new dapr.DaprClient({
+  daprHost: config.CNS_DAPR_HOST,
+  daprPort: config.CNS_DAPR_PORT,
+  logger: {
+    level: dapr.LogLevel.Error
+  }
+});
+
+// Dapr server
+
+const server = new dapr.DaprServer({
+  serverHost: config.CNS_SERVER_HOST,
+  serverPort: config.CNS_SERVER_PORT,
+  clientOptions: {
+    daprHost: config.CNS_DAPR_HOST,
+    daprPort: config.CNS_DAPR_PORT
+  },
+  logger: {
+    level: dapr.LogLevel.Error
+  }
+});
 
 // Installers
 
@@ -29,72 +73,41 @@ const KUBE_INSTALLERS = [
 
 // Control profile
 
-const KUBE_PROFILE = 'kubecns.control';
-const KUBE_VERSION = '';
-const KUBE_ROLE = 'server';
-
+const KUBE_PROFILE_V1 = 'cp:kubecns.control.v1:provider';
 const KUBE_SYNCTIME = 2000;
-
-// Dapr server
-
-const server = new dapr.DaprServer({
-  serverHost: SERVER_HOST,
-  serverPort: SERVER_PORT,
-  clientOptions: {
-    daprHost: DAPR_HOST,
-    daprPort: DAPR_PORT
-  }
-});
-
-console.log(`[*] CNS Server is at ${SERVER_HOST}:${SERVER_PORT}`)
-console.log(`[*] Dapr is at ${DAPR_HOST}:${DAPR_PORT}`)
-
-// Dapr client
-
-const client = new dapr.DaprClient({
-  daprHost: DAPR_HOST,
-  daprPort: DAPR_PORT
-});
 
 // Local data
 
 var installers = {};
 
-var node = {};
+var connsV1 = {};
 var changes = {};
 
 var sync;
 
-// Bind kube installers
+// Bind installers
 function bindInstallers() {
   // Bind each installer
   for (const installer of KUBE_INSTALLERS) {
     try {
+      // Bind module
       installers[installer] = require('./src/installers/' + installer + '.js');
+      console.log('CNS Kube supports', installer);
     } catch (e) {
+      // Failure
       console.error('Error:', 'failed to bind installer', installer);
       console.error(e);
     }
   }
 }
 
-// Update connection changes
-async function updateConnection(id) {
+// Add connection
+async function connectV1(id) {
   // Get connection
-  const conn = node.connections[id];
+  const conn = connsV1[id];
 
   if (conn === undefined) {
     console.log('Unknown:', id);
-    return;
-  }
-
-  // Valid kube profile?
-  const profile = conn.profile;
-  const version = conn.version;
-  const role = conn.role;
-
-  if (profile !== KUBE_PROFILE || version !== KUBE_VERSION || role !== KUBE_ROLE) {
-    console.log('Ignoring:', id, profile, role);
     return;
   }
 
@@ -104,8 +117,9 @@ async function updateConnection(id) {
   const action = properties.action;
   const installer = installers[properties.installer];
 
-  console.log('Processing:', id, profile, role, action);
+  console.log('Processing:', id, action);
 
+  // Valid installer?
   if (installer === undefined) {
     console.error('Error:', 'installer not valid');
     return;
@@ -150,29 +164,29 @@ async function updateConnection(id) {
   }
 
   // Has result?
-  if (result !== undefined) {
-    // Post action result
-    try {
-      const res = await client.invoker.invoke(
-        CNS_DAPR,
-        CNS_CONTEXT + '/connections/' + id + '/properties',
-        dapr.HttpMethod.POST,
-        result);
+  if (result === undefined) return;
 
-      // Server error?
-      if (res.error !== undefined)
-        throw new Error(res.error);
-    } catch(e) {
-      // Failure
-      console.error('Error:', e.message);
-    }
+  try {
+    // Post action result
+    const res = await client.invoker.invoke(
+      config.CNS_DAPR,
+      'node/contexts/' + config.CNS_CONTEXT + '/capabilities/' + KUBE_PROFILE_V1 + '/connections/' + id + '/properties',
+      dapr.HttpMethod.POST,
+      result);
+
+    // CNS Dapr error?
+    if (res.error !== undefined)
+      throw new Error(res.error);
+  } catch(e) {
+    // Failure
+    console.error('Error:', e.message);
   }
 }
 
 // Remove connection
-async function removeConnection(id) {
+async function removeV1(id) {
   // Get connection
-  const conn = node.connections[id];
+  const conn = connsV1[id];
 
   if (conn === undefined) {
     console.log('Unknown:', id);
@@ -180,17 +194,7 @@ async function removeConnection(id) {
   }
 
   // Remove connection
-  delete node.connections[id];
-
-  // Valid kube profile?
-  const profile = conn.profile;
-  const version = conn.version;
-  const role = conn.role;
-
-  if (profile !== KUBE_PROFILE || version !== KUBE_VERSION || role !== KUBE_ROLE) {
-    console.log('Ignoring:', id, profile, role);
-    return;
-  }
+  delete connsV1[id];
 
   // Get properties
   const properties = conn.properties;
@@ -200,19 +204,20 @@ async function removeConnection(id) {
 
   // Not in applied state?
   if (action !== 'applied') {
-    console.log('Skipping:', id, profile, role, action);
+    console.log('Skipping:', id, action);
     return;
   }
 
-  console.log('Processing:', id, profile, role, 'remove');
+  console.log('Processing:', id, 'remove');
 
+  // Valid installer?
   if (installer === undefined) {
     console.error('Error:', 'installer not valid');
     return;
   }
 
-  // Try to remove
   try {
+    // Try to remove
     const result = installer.remove(properties);
     console.log('Removed:', result.status);
   } catch (e) {
@@ -222,29 +227,58 @@ async function removeConnection(id) {
   }
 }
 
-// Update node changes
-async function updateNode(data) {
-  // Get connection changes
+// Update capability
+async function updateV1(data) {
+  // Capability removed?
+  if (data === null) {
+    // Remove all connections
+    for (const id of connsV1)
+      await removeV1(id);
+
+    connsV1 = {};
+    return;
+  }
+
+  // Process connections
   const conns = data.connections;
 
-  // Process deletions
   for (const id in conns) {
+    // Connection removed?
     if (conns[id] === null) {
-      await removeConnection(id);
+      await removeV1(id);
       delete conns[id];
     }
   }
 
   // Merge changes
-  node = merge(node, data);
+  connsV1 = merge(connsV1, conns);
 
   // Process updates
   for (const id in conns)
-    await updateConnection(id);
+    await connectV1(id);
 }
 
-// Sync node changes
-function syncNode(data) {
+// Update context changes
+async function updateContext(data) {
+  // Has any data?
+  if (data === undefined) return;
+
+  // Get capability changes
+  const caps = data.capabilities;
+
+  for (const profile in caps) {
+    // What profile?
+    switch (profile) {
+      case KUBE_PROFILE_V1:
+        // Version 1
+        await updateV1(caps[profile]);
+        break;
+    }
+  }
+}
+
+// Sync context changes
+function syncContext(data) {
   // Keep changes
   changes = merge(changes, data);
 
@@ -257,41 +291,49 @@ function syncNode(data) {
     sync = undefined;
 
     // Update all changes
-    updateNode(changes);
+    updateContext(changes);
     changes = {};
   }, KUBE_SYNCTIME);
 }
 
 // Client application
 async function start() {
-  // No context?
-  if (CNS_CONTEXT === '')
-    throw new Error('not configured');
+  // Output welcome
+  console.log('CNS Kube', pack.version);
+
+  console.log('CNS Kube on', config.CNS_SERVER_HOST, 'port', config.CNS_SERVER_PORT);
+  console.log('CNS Dapr on', config.CNS_DAPR_HOST, 'port', config.CNS_DAPR_PORT);
 
   // Bind installer modules
   bindInstallers();
 
+  // No context?
+  if (config.CNS_CONTEXT === '')
+    throw new Error(E_CONTEXT);
+
+  console.log('CNS context:', config.CNS_CONTEXT);
+
   // Start client
   await client.start();
 
-  // Fetch node state
+  // Fetch context state
   const res = await client.invoker.invoke(
-    CNS_DAPR,
-    CNS_CONTEXT,
+    config.CNS_DAPR,
+    'node/contexts/' + config.CNS_CONTEXT,
     dapr.HttpMethod.GET);
 
-  // Server error?
+  // CNS Dapr error?
   if (res.error !== undefined)
     throw new Error(res.error);
 
   // Initial update
-  await updateNode(res.data);
+  await updateContext(res.data);
 
-  // Subscribe to changes
+  // Subscribe to context
   server.pubsub.subscribe(
-    CNS_PUBSUB,
-    CNS_CONTEXT,
-    (KUBE_SYNCTIME > 0)?syncNode:updateNode);
+    config.CNS_PUBSUB,
+    'node/contexts/' + config.CNS_CONTEXT,
+    (KUBE_SYNCTIME > 0)?syncContext:updateContext);
 
   // Start server
   await server.start();
