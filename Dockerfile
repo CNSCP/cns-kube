@@ -18,4 +18,5 @@ RUN npm install
 
 COPY . /app/
 
-CMD ["npm", "run", "start"]
+# Start in kubernetes mode
+CMD ["npm", "run", "node"]
