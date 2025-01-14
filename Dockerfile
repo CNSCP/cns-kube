@@ -1,9 +1,10 @@
 FROM node:18
-ARG KUBECTL_ARCH=amd64 #--> kubectl also supports 'arm64'
 
 # Install Helm Kubectl, and Dapr
 WORKDIR /tmp
-RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash \
+RUN KUBECTL_ARCH=$(uname -m) \
+  && echo "Architecture Found --> $KUBECTL_ARCH" \
+  && curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash \
   && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${KUBECTL_ARCH}/kubectl" \
   && chmod +x kubectl \
   && mv kubectl /usr/local/bin/ \
