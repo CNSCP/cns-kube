@@ -21,7 +21,7 @@ const E_CONTEXT = 'no context';
 
 const defaults = {
   CNS_CONTEXT: '',
-  CNS_DAPR: 'cns-dapr',
+  CNS_DAPR_APP_ID: 'cns-dapr',
   CNS_DAPR_HOST: 'localhost',
   CNS_DAPR_PORT: '3500',
   CNS_PUBSUB: 'cns-pubsub',
@@ -33,7 +33,7 @@ const defaults = {
 
 const config = {
   CNS_CONTEXT: process.env.CNS_CONTEXT || defaults.CNS_CONTEXT,
-  CNS_DAPR: process.env.CNS_DAPR || defaults.CNS_DAPR,
+  CNS_DAPR_APP_ID: process.env.CNS_DAPR_APP_ID || defaults.CNS_DAPR_APP_ID,
   CNS_DAPR_HOST: process.env.CNS_DAPR_HOST || defaults.CNS_DAPR_HOST,
   CNS_DAPR_PORT: process.env.CNS_DAPR_PORT || defaults.CNS_DAPR_PORT,
   CNS_PUBSUB: process.env.CNS_PUBSUB || defaults.CNS_PUBSUB,
@@ -170,7 +170,7 @@ async function connectV1(id) {
   try {
     // Post action result
     const res = await client.invoker.invoke(
-      config.CNS_DAPR,
+      config.CNS_DAPR_APP_ID,
       'node/contexts/' + config.CNS_CONTEXT + '/capabilities/' + KUBE_PROFILE_V1 + '/connections/' + id + '/properties',
       dapr.HttpMethod.POST,
       result);
@@ -319,7 +319,7 @@ async function start() {
 
   // Fetch context state
   const res = await client.invoker.invoke(
-    config.CNS_DAPR,
+    config.CNS_DAPR_APP_ID,
     'node/contexts/' + config.CNS_CONTEXT,
     dapr.HttpMethod.GET);
 

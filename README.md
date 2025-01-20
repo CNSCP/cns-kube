@@ -47,15 +47,15 @@ To shut down the application, hit `ctrl-c`.
 
 The CNS Kube uses the following environment variables to configure itself:
 
-| Name             | Description                      | Default                |
-|------------------|----------------------------------|------------------------|
-| CNS_CONTEXT      | CNS Broker context               | Must be set            |
-| CNS_DAPR         | CNS Dapr application             | 'cns-dapr'             |
-| CNS_DAPR_HOST    | CNS Dapr host                    | 'localhost'            |
-| CNS_DAPR_PORT    | CNS Dapr port                    | '3500'                 |
-| CNS_PUBSUB       | CNS Dapr PUBSUB component        | 'cns-pubsub'           |
-| CNS_SERVER_HOST  | CNS Kube server host             | 'localhost'            |
-| CNS_SERVER_PORT  | CNS Kube server port             | '3001'                 |
+| Name             | Description                         | Default                |
+|------------------|-------------------------------------|------------------------|
+| CNS_CONTEXT      | CNS Broker context                  | Must be set            |
+| CNS_DAPR_APP_ID  | The Dapr Application ID for CNS-Dapr| 'cns-dapr'             |
+| CNS_DAPR_HOST    | CNS Dapr host                       | 'localhost'            |
+| CNS_DAPR_PORT    | CNS Dapr port                       | '3500'                 |
+| CNS_PUBSUB       | CNS Dapr PUBSUB component           | 'cns-pubsub'           |
+| CNS_SERVER_HOST  | CNS Kube server host                | 'localhost'            |
+| CNS_SERVER_PORT  | CNS Kube server port                | '3001'                 |
 
 Alternatively, variables can be stored in a `.env` file in the project directory.
 
@@ -98,11 +98,11 @@ Alternatively, variables can be stored in a `.env` file in the project directory
 | Name                | Description                                          | Default                |
 |---------------------|------------------------------------------------------|------------------------|
 | HELM_BINARY_PATH    | Path to Helm binary                                  | Must be set            |
-| KTUNNEL_ENABLED_KEY | The helm values.yaml key to enable ktunnel           | ktunnel.enabled        |
-| KTUNNEL_PORT_KEY    | The helm values.yaml key to set which port to tunnel | service.port           |
-| KTUNNEL_ID_KEY      | The helm values.yaml file to set the tunnel ID       | ktunnel.id             |
+| TUNNEL_ENABLED_KEY  | The helm values.yaml key to enable tunnel            | tunnel.enabled        |
+| TUNNEL_PORT_KEY     | The helm values.yaml key to set which port to tunnel | service.port           |
+| TUNNEL_ID_KEY       | The helm values.yaml file to set the tunnel ID       | tunnel.id             |
 | INTERFACE_HOST      | The ingress host for the tunneled application        | ibb.staging.padi.io    |
-| KTUNNEL_DEFAULT_PORT | The default port to tunnel                          | 8080                   |
+| TUNNEL_DEFAULT_PORT | The default port to tunnel                           | 8080                   |
 
 ##### Kubectl Installer
 

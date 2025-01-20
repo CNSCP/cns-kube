@@ -10,17 +10,16 @@ const cp = require('child_process');
 // Constants
 const DEBUG = process.env.DEBUG || "false"
 const HELM_BINARY = process.env.HELM_BINARY_PATH || 'suppress';
-const KTUNNEL_ENABLED_KEY = process.env.KTUNNEL_ENABLE_VALUE || "ktunnel.enabled"
-const KTUNNEL_PORT_KEY = process.env.KTUNNEL_PORT_KEY || 'service.port'
-const KTUNNEL_ID_KEY = process.env.KTUNNEL_ID_KEY || "ktunnel.id"
-const INTERFACE_HOST = process.env.INTERFACE_HOST || "ibb.staging.padi.io"
-const KTUNNEL_DEFAULT_PORT = process.env.KTUNNEL_DEFAULT_PORT || "8080"
+const TUNNEL_ENABLED_KEY = process.env.TUNNEL_ENABLE_VALUE || "tunnel.enabled"
+const TUNNEL_PORT_KEY = process.env.TUNNEL_PORT_KEY || 'service.port'
+const TUNNEL_ID_KEY = process.env.TUNNEL_ID_KEY || "tunnel.id"
+const TUNNEL_DEFAULT_PORT = process.env.TUNNEL_DEFAULT_PORT || "8080"
 
 // Apply action
 function apply(properties) {
-  var values, port, interfaceUrl, repoName
+  var values, port, repoName
   let resp = {}
-  let ktunnel_enabled = false
+  let tunnel_enabled = false
 
   if (DEBUG == "true") {
     console.log("[*] Properties are")
@@ -85,54 +84,40 @@ function apply(properties) {
   }
 
   for (var key in values) {
-    // If KTunnel is enabled, set the ID to the ContextID. Ktunnel requires
-    // it to be lowercase, otherwise the tunnel does not start.
-    if (key == KTUNNEL_ENABLED_KEY && values[key].toLowerCase() == "true") {
-      let cid = contextId.toLowerCase()
-      install.push(`--set ${KTUNNEL_ID_KEY}=kt-${cid}`)
-      ktunnel_enabled = true
+    // If a tunnel is enabled, set the ID to the ContextID.
+    if (key == TUNNEL_ENABLED_KEY && values[key].toLowerCase() == "true") {
+      install.push(`--set ${TUNNEL_ID_KEY}=${contextId}`)
+      tunnel_enabled = true
     }
 
     // If the property is the port we need to forward, save that information for later
-    if (key == KTUNNEL_PORT_KEY) {
+    if (key == TUNNEL_PORT_KEY) {
       port = values[key]
     }
     install.push(`--set ${key}=${values[key]}`)
   }
 
+  let cmd = install.join(" ")
+
   if (DEBUG == "true") {
     console.log("[*] CMD")
-    console.log(install)
+    console.log(cmd)
   }
 
-  let cmd = install.join(" ")
   const output = spawn(`${cmd}`)
   const data = JSON.parse(output.toString());
 
-  port = port || KTUNNEL_DEFAULT_PORT
+  port = port || TUNNEL_DEFAULT_PORT
   let interfaceMode = properties.interfaceMode || "embed"
-  if (contextId && port ) {
-    let cid = contextId.toLowerCase()
-    interfaceUrl = `https://kt-${cid}_${port}.${INTERFACE_HOST}`
-  } else {
-    interfaceUrl = null
-  }
 
   resp['action'] = 'applied'
   resp['status'] = data.info.status
 
-  if (contextId && port && ktunnel_enabled) {
+  if (contextId && port && tunnel_enabled) {
     resp['interfaceMode'] = interfaceMode
-    resp['interfaceUrl'] = interfaceUrl
   }
 
   // Success
-  let response = {
-    action: 'applied',
-    status: data.info.status,
-    interfaceMode: interfaceMode,
-    interfaceUrl: interfaceUrl,
-  };
   if (DEBUG) {
     console.log(resp)
   }
@@ -183,15 +168,6 @@ function _checkValidProperties(properties) {
   })
 
   return valid
-
-  // for (var p in required_properties) {
-  //   console.log(p)
-  //   if (!properties[p]) {
-  //     console.log(`Property ${p} not found`)
-  //     return false
-  //   }
-  // }
-  // return true
 }
 
 // Exports
