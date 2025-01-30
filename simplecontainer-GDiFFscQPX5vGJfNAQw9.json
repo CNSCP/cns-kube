@@ -1,0 +1,1 @@
+{"image":{"repository":"nginx","tag":"latest","pullPolicy":"Always"},"tunnel":{"enabled":"true","id":"GDiFFscQPX5vGJfNAQw9"},"service":{"port":"80"}}

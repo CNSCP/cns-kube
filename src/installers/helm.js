@@ -49,10 +49,6 @@ function apply(properties) {
   // Upgrade the charts
   spawn(`${HELM_BINARY} repo update`);
 
-  if (DEBUG == "true") {
-    spawn(`${HELM_BINARY} search repo ibb`);
-  }
-
   // Install is a list which is turned into the helm command used to install the chart
   let install = []
 
@@ -69,9 +65,11 @@ function apply(properties) {
   try {
     if (properties.helmValuesJSON) {
       const valuesFile = `/tmp/${releaseName}-${contextId}.json`
-      fs.writeFile(valuesFile, properties.helmValuesJSON, (err) => {
+      fs.writeFileSync(valuesFile, properties.helmValuesJSON, function (err) {
         if (err) throw err;
+        console.log(`Helm values saved to ${valuesFile}`)
       })
+
       install.push(`--values ${valuesFile}`)
     }
   } catch (error) {
@@ -93,15 +91,11 @@ function apply(properties) {
 
   let cmd = install.join(" ")
 
-  if (DEBUG == "true") {
-    console.log("[*] CMD " + cmd)
-  }
-
   const output = spawn(`${cmd}`)
   const data = JSON.parse(output.toString());
 
   if (DEBUG == "true") {
-    console.log("[*] Helm Response " + data)
+    console.log("[*] Helm Response " + JSON.stringify(data))
   }
 
 
