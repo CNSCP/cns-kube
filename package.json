@@ -1,6 +1,6 @@
 {
   "name": "cns-kube",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Dapr CNS Kube",
   "author": "Padi, Inc",
   "license": "ISC",
