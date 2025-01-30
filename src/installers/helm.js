@@ -90,12 +90,16 @@ function apply(properties) {
   let cmd = install.join(" ")
 
   if (DEBUG == "true") {
-    console.log("[*] CMD")
-    console.log(cmd)
+    console.log("[*] CMD " + cmd)
   }
 
   const output = spawn(`${cmd}`)
   const data = JSON.parse(output.toString());
+
+  if (DEBUG == "true") {
+    console.log("[*] Helm Response " + output)
+  }
+
 
   port = port || TUNNEL_DEFAULT_PORT
   let interfaceMode = properties.interfaceMode || "embed"
