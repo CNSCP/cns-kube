@@ -6,6 +6,7 @@
 // Imports
 
 const cp = require('child_process');
+const fs = require('fs')
 
 // Constants
 const DEBUG = process.env.DEBUG || "false"
@@ -63,9 +64,11 @@ function apply(properties) {
   // If no values provided, return empty (valid) object
   try {
     if (properties.helmValuesJSON) {
-      values = JSON.parse(properties.helmValuesJSON)
-    } else {
-      values = {}
+      const valuesFile = `/tmp/${releaseName}-${contextId}.json`
+      fs.writeFile(valuesFile, properties.helmValuesJSON, (err) => {
+        if (err) throw err;
+      })
+      install.push(`--values ${valuesFile}`)
     }
   } catch (error) {
     // Return error if JSON parsing fails
@@ -83,19 +86,6 @@ function apply(properties) {
     install.push(`--set cnsDapr.cnsToken=${contextToken}`)
   }
 
-  for (var key in values) {
-    // If a tunnel is enabled, set the ID to the ContextID.
-    if (key == TUNNEL_ENABLED_KEY && values[key].toLowerCase() == "true") {
-      install.push(`--set ${TUNNEL_ID_KEY}=${contextId}`)
-      tunnel_enabled = true
-    }
-
-    // If the property is the port we need to forward, save that information for later
-    if (key == TUNNEL_PORT_KEY) {
-      port = values[key]
-    }
-    install.push(`--set ${key}=${values[key]}`)
-  }
 
   let cmd = install.join(" ")
 
