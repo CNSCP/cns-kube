@@ -35,7 +35,7 @@ function apply(properties) {
   // All of these consts have been checked for truthiness
   const namespace = properties.namespace
   const chartName = properties.chartName
-  const releaseName = properties.releaseName.toLowerCase().replace(" ", "")
+  const releaseName = properties.releaseName.toLowerCase().replace(" ", "").replace("-","")
   const repoUrl = properties.repoUrl
   const contextId = properties.contextID
   const contextToken = properties.contextToken
@@ -48,6 +48,10 @@ function apply(properties) {
 
   // Upgrade the charts
   spawn(`${HELM_BINARY} repo update`);
+
+  if (DEBUG == "true") {
+    spawn(`${HELM_BINARY} search repo ibb`);
+  }
 
   // Install is a list which is turned into the helm command used to install the chart
   let install = []
@@ -97,7 +101,7 @@ function apply(properties) {
   const data = JSON.parse(output.toString());
 
   if (DEBUG == "true") {
-    console.log("[*] Helm Response " + output)
+    console.log("[*] Helm Response " + data)
   }
 
 
@@ -115,6 +119,7 @@ function apply(properties) {
   if (DEBUG) {
     console.log(resp)
   }
+
   return resp
 }
 
