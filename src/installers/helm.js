@@ -11,10 +11,6 @@ const fs = require('fs')
 // Constants
 const DEBUG = process.env.DEBUG || "false"
 const HELM_BINARY = process.env.HELM_BINARY_PATH || 'suppress';
-const TUNNEL_ENABLED_KEY = process.env.TUNNEL_ENABLE_VALUE || "tunnel.enabled"
-const TUNNEL_PORT_KEY = process.env.TUNNEL_PORT_KEY || 'service.port'
-const TUNNEL_ID_KEY = process.env.TUNNEL_ID_KEY || "tunnel.id"
-const TUNNEL_DEFAULT_PORT = process.env.TUNNEL_DEFAULT_PORT || "8080"
 
 // Apply action
 function apply(properties) {
@@ -35,7 +31,8 @@ function apply(properties) {
   // All of these consts have been checked for truthiness
   const namespace = properties.namespace
   const chartName = properties.chartName
-  const releaseName = properties.releaseName.toLowerCase().replace(" ", "").replace("-","")
+  let releaseName = properties.releaseName.toLowerCase().replace(" ", "").replace("-","")
+  releaseName = `cnskube-${releaseName}`
   const repoUrl = properties.repoUrl
   const contextId = properties.contextID
   const contextToken = properties.contextToken
@@ -98,16 +95,8 @@ function apply(properties) {
     console.log("[*] Helm Response " + JSON.stringify(data))
   }
 
-
-  port = port || TUNNEL_DEFAULT_PORT
-  let interfaceMode = properties.interfaceMode || "embed"
-
   resp['action'] = 'applied'
   resp['status'] = data.info.status
-
-  if (contextId && port && tunnel_enabled) {
-    resp['interfaceMode'] = interfaceMode
-  }
 
   // Success
   if (DEBUG) {
@@ -120,7 +109,8 @@ function apply(properties) {
 // Remove action
 function remove(properties) {
   const namespace = properties.namespace || '';
-  const releaseName = properties.releaseName.toLowerCase().replace(" ", "").replace("-","")
+  let releaseName = properties.releaseName.toLowerCase().replace(" ", "").replace("-","")
+  releaseName = `cnskube-${releaseName}`
   const output = spawn(`${HELM_BINARY} uninstall ${releaseName} --namespace ${namespace}`);
   const data = JSON.parse(output.toString());
   return {
