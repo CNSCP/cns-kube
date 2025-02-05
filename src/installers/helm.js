@@ -62,6 +62,9 @@ function apply(properties) {
   try {
     if (properties.helmValuesJSON) {
       const valuesJSON = parseHelmValues(JSON.parse(properties.helmValuesJSON))
+      if (valuesJSON.tunnel && valuesJSON.tunnel.id == undefined) {
+          valuesJSON['tunnel']['id'] = contextId
+      }
       const valuesFile = `/tmp/${releaseName}-${contextId}.json`
       fs.writeFileSync(valuesFile, JSON.stringify(valuesJSON), function (err) {
         if (err) throw err;
