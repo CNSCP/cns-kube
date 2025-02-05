@@ -61,8 +61,9 @@ function apply(properties) {
   // If no values provided, return empty (valid) object
   try {
     if (properties.helmValuesJSON) {
+      const valuesJSON = parseHelmValues(JSON.parse(properties.helmValuesJSON))
       const valuesFile = `/tmp/${releaseName}-${contextId}.json`
-      fs.writeFileSync(valuesFile, properties.helmValuesJSON, function (err) {
+      fs.writeFileSync(valuesFile, JSON.stringify(valuesJSON), function (err) {
         if (err) throw err;
         console.log(`Helm values saved to ${valuesFile}`)
       })
@@ -128,6 +129,29 @@ function spawn(command) {
     return '{"info": {"status": "suppressed"}}';
 
   return cp.execSync(command);
+}
+function parseHelmValues(obj) {
+  // Function to parse dot notation into a valid object. 
+  // Example: 'foo.bar: baz' --> {"foo": {"bar":"baz"}}
+  let result = {};
+
+  for (let key in obj) {
+    let parts = key.split(".");
+    let current = result;
+
+    for (let i = 0; i < parts.length; i++) {
+      let part = parts[i];
+
+      if (i === parts.length - 1) {
+        current[part] = obj[key]; // Assign value at the last part
+      } else {
+        current[part] = current[part] || {}; // Create nested object if it doesn't exist
+        current = current[part]; // Move deeper
+      }
+    }
+  }
+
+  return result;
 }
 
 // Check that incoming properties are valid
