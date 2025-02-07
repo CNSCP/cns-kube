@@ -31,7 +31,7 @@ function apply(properties) {
   // All of these consts have been checked for truthiness
   const namespace = properties.namespace
   const chartName = properties.chartName
-  let releaseName = properties.releaseName.toLowerCase().replace(" ", "").replace("-","")
+  let releaseName = properties.releaseName.toLowerCase().replace(" ", "")
   releaseName = `cnskube-${releaseName}`
   const repoUrl = properties.repoUrl
   const contextId = properties.contextID
@@ -113,7 +113,7 @@ function apply(properties) {
 // Remove action
 function remove(properties) {
   const namespace = properties.namespace || '';
-  let releaseName = properties.releaseName.toLowerCase().replace(" ", "").replace("-","")
+  let releaseName = properties.releaseName.toLowerCase().replace(" ", "")
   releaseName = `cnskube-${releaseName}`
   const output = spawn(`${HELM_BINARY} uninstall ${releaseName} --namespace ${namespace}`);
   const data = JSON.parse(output.toString());
