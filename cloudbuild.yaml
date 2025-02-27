@@ -26,10 +26,10 @@ options:
   dynamic_substitutions: true
 
 substitutions:
+  _APP_NAME: cns-kube
+  _ARTIFACT_REGISTRY_REPO: public
+  _ENV: staging
   _GCR_IMAGE: >-
     us-central1-docker.pkg.dev/${_GCR_PROJ}/${_ARTIFACT_REGISTRY_REPO}/${_APP_NAME}
-  _ENV: staging
-  _ARTIFACT_REGISTRY_REPO: public
-  _TAG: latest
   _GCR_PROJ: padi-staging
-  _APP_NAME: cns-kube
+  _TAG: latest
